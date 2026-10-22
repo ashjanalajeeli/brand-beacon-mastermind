@@ -153,7 +153,7 @@ function HomePage() {
       <div className="grid min-h-0 flex-1 lg:grid-cols-[360px_1fr]">
         <aside className="hidden min-h-0 overflow-y-auto border-e bg-surface/40 p-4 lg:block">
           <h2 className="mb-3 text-sm font-semibold text-surface-foreground">{t.brief}</h2>
-          <BriefForm t={t} value={brief} onSave={handleSaveBrief} />
+          {dataReady && <BriefForm t={t} value={brief} onSave={handleSaveBrief} />}
         </aside>
 
         <section className="flex min-h-0 flex-col">
@@ -162,7 +162,7 @@ function HomePage() {
               {t.brief}
             </summary>
             <div className="mt-3">
-              <BriefForm t={t} value={brief} onSave={handleSaveBrief} />
+              {dataReady && <BriefForm t={t} value={brief} onSave={handleSaveBrief} />}
             </div>
           </details>
           <div className="min-h-0 flex-1">
