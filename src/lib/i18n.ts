@@ -105,4 +105,4 @@ export const dict = {
   },
 } as const;
 
-export type Dict = (typeof dict)["ar"];
+export type Dict = (typeof dict)["ar"] | (typeof dict)["en"];
