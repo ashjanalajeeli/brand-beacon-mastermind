@@ -155,3 +155,16 @@
   background-clip: text;
   color: transparent;
 }
+
+@keyframes shimmer-slide {
+  from {
+    background-position: 100% center;
+  }
+  to {
+    background-position: 0% center;
+  }
+}
+
+@utility animate-shimmer {
+  animation: shimmer-slide 2s linear infinite;
+}
