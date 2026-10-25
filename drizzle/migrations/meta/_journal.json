@@ -8,6 +8,13 @@
       "when": 1789653141535,
       "tag": "0000_create_marketing_agent_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792921118816,
+      "tag": "0001_marketing_scope_and_execution",
+      "breakpoints": true
     }
   ]
 }

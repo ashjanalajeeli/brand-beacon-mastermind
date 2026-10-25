@@ -18,11 +18,15 @@ export type Database = {
         Row: {
           audience: string
           budget: string
+          competitor_links: string
+          competitor_scope: string
           country: string
           duration: string
           idea: string
           language: string
           notes: string
+          paid_ads: boolean
+          platforms: string[]
           project_name: string
           updated_at: string
           user_id: string
@@ -30,11 +34,15 @@ export type Database = {
         Insert: {
           audience?: string
           budget?: string
+          competitor_links?: string
+          competitor_scope?: string
           country?: string
           duration?: string
           idea?: string
           language?: string
           notes?: string
+          paid_ads?: boolean
+          platforms?: string[]
           project_name?: string
           updated_at?: string
           user_id: string
@@ -42,11 +50,15 @@ export type Database = {
         Update: {
           audience?: string
           budget?: string
+          competitor_links?: string
+          competitor_scope?: string
           country?: string
           duration?: string
           idea?: string
           language?: string
           notes?: string
+          paid_ads?: boolean
+          platforms?: string[]
           project_name?: string
           updated_at?: string
           user_id?: string
@@ -73,6 +85,36 @@ export type Database = {
           created_at?: string
           id?: string
           role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      execution_plans: {
+        Row: {
+          approved_at: string
+          content: string
+          created_at: string
+          id: string
+          paid_ads: boolean
+          platforms: string[]
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string
+          content: string
+          created_at?: string
+          id?: string
+          paid_ads?: boolean
+          platforms?: string[]
+          user_id: string
+        }
+        Update: {
+          approved_at?: string
+          content?: string
+          created_at?: string
+          id?: string
+          paid_ads?: boolean
+          platforms?: string[]
           user_id?: string
         }
         Relationships: []
