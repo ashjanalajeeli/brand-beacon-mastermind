@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { approvalSchema, marketingSettingsSchema } from "@/lib/marketing-settings";
 
 const BriefSchema = z.object({
   project_name: z.string().max(200).default(""),
@@ -11,7 +12,7 @@ const BriefSchema = z.object({
   country: z.string().max(200).default(""),
   language: z.string().max(5).default("ar"),
   notes: z.string().max(4000).default(""),
-});
+}).merge(marketingSettingsSchema);
 
 export type BriefInput = z.infer<typeof BriefSchema>;
 
@@ -74,4 +75,18 @@ export const clearMessages = createServerFn({ method: "POST" })
       .eq("user_id", context.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+export const approvePlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => approvalSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: plan, error } = await context.supabase.from("execution_plans").insert({
+      user_id: context.userId,
+      content: data.content,
+      platforms: data.platforms,
+      paid_ads: data.paid_ads,
+    }).select("id").single();
+    if (error) throw new Error(error.message);
+    return { id: plan.id };
   });

@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep marketing preferences and approval validation in the shared marketing-settings module so form, server and agent use identical rules.
+- Persist approved plan snapshots per authenticated user; content preparation is separate from publication and paid-ad spending, which require verified platform connections and explicit authorization.

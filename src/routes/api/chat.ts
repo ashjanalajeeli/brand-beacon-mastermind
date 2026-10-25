@@ -1,6 +1,7 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import { marketingSettingsSchema, settingsInstructions } from "@/lib/marketing-settings";
 
 type Brief = {
   project_name?: string | null;
@@ -11,6 +12,10 @@ type Brief = {
   country?: string | null;
   language?: string | null;
   notes?: string | null;
+  competitor_scope?: string;
+  competitor_links?: string;
+  paid_ads?: boolean;
+  platforms?: string[];
 };
 
 type ChatRequestBody = { messages?: unknown; brief?: Brief; language?: string };
@@ -30,6 +35,8 @@ Project brief:
 - Budget: ${b.budget || "not provided"}
 - Country/market: ${b.country || "not provided"}
 - Notes: ${b.notes || "none"}
+
+${settingsInstructions(marketingSettingsSchema.parse(b))}
 
 Rules:
 - Adapt every recommendation to the country's culture, language, platforms, seasons and price levels, and keep spend inside the stated budget.
@@ -69,13 +76,16 @@ export const Route = createFileRoute("/api/chat")({
 
         const result = streamText({
           model: lovable.responses("openai/gpt-6-astra"),
-          system: systemPrompt(body.brief, body.language ?? "ar"),
+          instructions: systemPrompt(body.brief, body.language ?? "ar"),
           messages: await convertToModelMessages(body.messages as UIMessage[]),
+          tools: { web_search: lovable.tools.webSearch({}) },
           providerOptions: {
             openai: {
               forceReasoning: true,
               reasoningEffort: "medium",
+              reasoningSummary: "auto",
               store: false,
+              include: ["reasoning.encrypted_content"],
             },
           },
         });
