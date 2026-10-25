@@ -18,6 +18,7 @@ import {
   type BriefInput,
 } from "@/lib/marketing.functions";
 import logo from "@/assets/logo.png";
+import { marketingSettingsSchema } from "@/lib/marketing-settings";
 
 const emptyBrief: BriefInput = {
   project_name: "",
@@ -28,6 +29,10 @@ const emptyBrief: BriefInput = {
   country: "",
   language: "ar",
   notes: "",
+  competitor_scope: "domestic",
+  paid_ads: false,
+  platforms: [],
+  competitor_links: "",
 };
 
 export const Route = createFileRoute("/")({
@@ -81,6 +86,12 @@ function HomePage() {
           country: briefRow.country ?? "",
           language: briefRow.language ?? "ar",
           notes: briefRow.notes ?? "",
+          ...marketingSettingsSchema.parse({
+            competitor_scope: briefRow.competitor_scope,
+            paid_ads: briefRow.paid_ads,
+            platforms: briefRow.platforms,
+            competitor_links: briefRow.competitor_links,
+          }),
         });
         if (briefRow.language === "ar" || briefRow.language === "en") {
           setLang(briefRow.language);

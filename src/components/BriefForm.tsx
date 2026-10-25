@@ -5,6 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { platformNames } from "@/lib/marketing-settings";
 import type { Dict } from "@/lib/i18n";
 import type { BriefInput } from "@/lib/marketing.functions";
 
@@ -76,6 +80,34 @@ export function BriefForm({
         <Label htmlFor="notes">{t.notes}</Label>
         <Textarea id="notes" rows={2} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
       </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="competitor_scope">{t.competitorScope}</Label>
+        <Select value={form.competitor_scope} onValueChange={(v) => setForm((prev) => ({ ...prev, competitor_scope: v === "international" ? "international" : "domestic" }))}>
+          <SelectTrigger id="competitor_scope"><SelectValue /></SelectTrigger>
+          <SelectContent><SelectItem value="domestic">{t.domestic}</SelectItem><SelectItem value="international">{t.international}</SelectItem></SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="competitor_links">{t.competitorLinks}</Label>
+        <Textarea id="competitor_links" rows={2} value={form.competitor_links} onChange={(e) => set("competitor_links", e.target.value)} />
+      </div>
+      <div className="flex items-center justify-between gap-3 border-y py-3">
+        <Label htmlFor="paid_ads">{t.paidAds}</Label>
+        <Switch id="paid_ads" checked={form.paid_ads} onCheckedChange={(paid_ads) => setForm((prev) => ({ ...prev, paid_ads }))} />
+      </div>
+      <p className="text-xs text-muted-foreground">{form.paid_ads ? t.adsOptIn : t.organicOnly}</p>
+      <fieldset className="space-y-3">
+        <legend className="mb-2 text-sm font-medium">{t.platforms}</legend>
+        <div className="grid grid-cols-2 gap-3">
+          {Object.entries(platformNames).map(([key, name]) => {
+            const platform = key as BriefInput["platforms"][number];
+            return <div key={key} className="flex items-center gap-2">
+              <Checkbox id={`platform-${key}`} checked={form.platforms.includes(platform)} onCheckedChange={(checked) => setForm((prev) => ({ ...prev, platforms: checked === true ? [...prev.platforms.filter((p) => p !== platform), platform] : prev.platforms.filter((p) => p !== platform) }))} />
+              <Label htmlFor={`platform-${key}`} className="text-xs">{name}</Label>
+            </div>;
+          })}
+        </div>
+      </fieldset>
       <Button type="submit" className="w-full" disabled={saving}>
         {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
         {t.save}
