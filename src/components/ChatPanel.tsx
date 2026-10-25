@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Dict, Lang } from "@/lib/i18n";
 import type { BriefInput } from "@/lib/marketing.functions";
 import logo from "@/assets/logo.png";
+import { PlanApproval } from "@/components/PlanApproval";
 
 type Props = {
   t: Dict;
@@ -92,14 +93,16 @@ export function ChatPanel({ t, lang, brief, initialMessages, onPersist, onClear 
 
       <div className="flex flex-wrap gap-2 border-b bg-surface/60 px-4 py-3">
         {t.quick.map((q) => (
-          <button
+          <Button
             key={q.label}
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => send(q.prompt)}
             className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-surface-foreground transition-colors hover:border-primary hover:text-primary"
           >
             {q.label}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -119,6 +122,9 @@ export function ChatPanel({ t, lang, brief, initialMessages, onPersist, onClear 
                   part.type === "text" ? (
                     <MessageResponse key={i}>{part.text}</MessageResponse>
                   ) : null,
+                )}
+                {message.role === "assistant" && !isLoading && message.parts.some((part) => part.type === "text" && part.text.trim()) && (
+                  <PlanApproval key={message.id} t={t} lang={lang} brief={brief} content={message.parts.filter((part) => part.type === "text").map((part) => part.text).join("\n")} onPrepare={send} />
                 )}
               </MessageContent>
             </Message>
