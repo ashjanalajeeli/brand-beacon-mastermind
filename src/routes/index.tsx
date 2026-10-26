@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { BriefForm } from "@/components/BriefForm";
 import { ChatPanel } from "@/components/ChatPanel";
+import { SocialConnections } from "@/components/SocialConnections";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { Button } from "@/components/ui/button";
 import { dict, type Lang } from "@/lib/i18n";
@@ -163,6 +164,7 @@ function HomePage() {
 
       <div className="grid min-h-0 flex-1 lg:grid-cols-[360px_1fr]">
         <aside className="hidden min-h-0 overflow-y-auto border-e bg-surface/40 p-4 lg:block">
+          {dataReady && <SocialConnections t={t} />}
           <h2 className="mb-3 text-sm font-semibold text-surface-foreground">{t.brief}</h2>
           {dataReady && <BriefForm t={t} value={brief} onSave={handleSaveBrief} />}
         </aside>

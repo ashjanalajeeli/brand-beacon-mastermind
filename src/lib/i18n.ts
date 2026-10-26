@@ -37,13 +37,22 @@ export const dict = {
     platforms: "منصات تنفيذ الخطة",
     approvePlan: "مراجعة واعتماد الخطة",
     approveTitle: "اعتماد الخطة وتجهيز التنفيذ",
-    approveDescription: "سيتم حفظ هذه النسخة وتجهيز محتواها للمنصات المختارة. لن يتم النشر أو دفع أي مبلغ الآن.",
+    approveDescription:
+      "سيتم حفظ هذه النسخة وتجهيز محتواها للمنصات المختارة. لن يتم النشر أو دفع أي مبلغ الآن.",
     confirmApproval: "أوافق على هذه النسخة من الخطة",
     approveAction: "اعتماد وتجهيز المحتوى",
     approved: "تم حفظ موافقتك على الخطة",
     cancel: "إلغاء",
     selectPlatforms: "اختر المنصات واحفظ بيانات المشروع أولًا",
     connectionPending: "النشر التلقائي غير مفعّل: إعداد ربط حسابات المنصات لم يكتمل.",
+    connectionsTitle: "الحسابات المرتبطة",
+    connected: "مرتبط",
+    notConnected: "غير مرتبط",
+    connect: "ربط الحساب",
+    disconnect: "إلغاء الربط",
+    disconnectNotReady: "سيتم تفعيل إلغاء الربط مع طبقة النشر",
+    connectionConsent:
+      "سيتم تسجيل الدخول في LinkedIn الرسمي. لا نطلب كلمة المرور ولا ننشر بدون موافقة صريحة.",
     tasks: "مهام الفريق",
     chat: "المحادثة",
     placeholder: "اطلب أي مهمة تسويقية...",
@@ -55,18 +64,57 @@ export const dict = {
     thinking: "جارٍ التفكير...",
     lang: "English",
     quick: [
-      { label: "استراتيجية تسويقية شاملة", prompt: "أعد استراتيجية تسويقية شاملة للمشروع تتضمن التحليل والتمركز والأهداف الذكية والقنوات ومؤشرات القياس." },
-      { label: "خطة أسبوعية", prompt: "أعد خطة تسويقية أسبوعية تفصيلية بجدول يومي للمهام والقنوات والمسؤوليات." },
-      { label: "خطة شهرية", prompt: "أعد خطة تسويقية شهرية بأهداف ومبادرات وتوزيع الميزانية والمؤشرات." },
-      { label: "خطة سنوية", prompt: "أعد خطة تسويقية سنوية مقسمة على أرباع السنة مع المواسم والحملات الكبرى وتوزيع الميزانية." },
-      { label: "خطة تنفيذية", prompt: "أعد خطة تنفيذية تشغيلية: المهام، المسؤوليات، الجدول الزمني، الموارد، والمخاطر." },
-      { label: "خطة المحتوى", prompt: "أعد خطة محتوى شهرية مع تقويم نشر لكل منصة، أنواع المحتوى، وأوقات النشر المناسبة." },
-      { label: "كتابة محتوى تسويقي", prompt: "اكتب محتوى تسويقيًا جاهزًا للنشر: منشورات، إعلانات، ونصوص صفحات هبوط مع عناوين بديلة." },
-      { label: "سيناريو فيديو", prompt: "اكتب سيناريو فيديو تسويقي كامل بالمشاهد، الحوار، الصوت، والنص المرئي." },
-      { label: "الرسالة والقيم", prompt: "حدد رسالة العلامة، رؤيتها، قيمها، نبرة الصوت، وعرض القيمة الفريد." },
-      { label: "التقويم التسويقي", prompt: "أعد تقويمًا تسويقيًا مفصلًا للفترة المحددة مع المناسبات والحملات." },
-      { label: "توزيع الميزانية", prompt: "وزّع الميزانية على القنوات والحملات مع توقع النتائج ومؤشرات الأداء." },
-      { label: "تحليل المنافسين", prompt: "حلّل المنافسين المحتملين في السوق المستهدف وحدد فرص التميز." },
+      {
+        label: "استراتيجية تسويقية شاملة",
+        prompt:
+          "أعد استراتيجية تسويقية شاملة للمشروع تتضمن التحليل والتمركز والأهداف الذكية والقنوات ومؤشرات القياس.",
+      },
+      {
+        label: "خطة أسبوعية",
+        prompt: "أعد خطة تسويقية أسبوعية تفصيلية بجدول يومي للمهام والقنوات والمسؤوليات.",
+      },
+      {
+        label: "خطة شهرية",
+        prompt: "أعد خطة تسويقية شهرية بأهداف ومبادرات وتوزيع الميزانية والمؤشرات.",
+      },
+      {
+        label: "خطة سنوية",
+        prompt:
+          "أعد خطة تسويقية سنوية مقسمة على أرباع السنة مع المواسم والحملات الكبرى وتوزيع الميزانية.",
+      },
+      {
+        label: "خطة تنفيذية",
+        prompt: "أعد خطة تنفيذية تشغيلية: المهام، المسؤوليات، الجدول الزمني، الموارد، والمخاطر.",
+      },
+      {
+        label: "خطة المحتوى",
+        prompt: "أعد خطة محتوى شهرية مع تقويم نشر لكل منصة، أنواع المحتوى، وأوقات النشر المناسبة.",
+      },
+      {
+        label: "كتابة محتوى تسويقي",
+        prompt:
+          "اكتب محتوى تسويقيًا جاهزًا للنشر: منشورات، إعلانات، ونصوص صفحات هبوط مع عناوين بديلة.",
+      },
+      {
+        label: "سيناريو فيديو",
+        prompt: "اكتب سيناريو فيديو تسويقي كامل بالمشاهد، الحوار، الصوت، والنص المرئي.",
+      },
+      {
+        label: "الرسالة والقيم",
+        prompt: "حدد رسالة العلامة، رؤيتها، قيمها، نبرة الصوت، وعرض القيمة الفريد.",
+      },
+      {
+        label: "التقويم التسويقي",
+        prompt: "أعد تقويمًا تسويقيًا مفصلًا للفترة المحددة مع المناسبات والحملات.",
+      },
+      {
+        label: "توزيع الميزانية",
+        prompt: "وزّع الميزانية على القنوات والحملات مع توقع النتائج ومؤشرات الأداء.",
+      },
+      {
+        label: "تحليل المنافسين",
+        prompt: "حلّل المنافسين المحتملين في السوق المستهدف وحدد فرص التميز.",
+      },
     ],
   },
   en: {
@@ -105,13 +153,22 @@ export const dict = {
     platforms: "Plan execution platforms",
     approvePlan: "Review and approve plan",
     approveTitle: "Approve plan and prepare execution",
-    approveDescription: "This version will be saved and content prepared for selected platforms. Nothing will be published or charged now.",
+    approveDescription:
+      "This version will be saved and content prepared for selected platforms. Nothing will be published or charged now.",
     confirmApproval: "I approve this version of the plan",
     approveAction: "Approve and prepare content",
     approved: "Your plan approval was saved",
     cancel: "Cancel",
     selectPlatforms: "Select platforms and save your project brief first",
     connectionPending: "Automatic publishing is not enabled: platform account setup is incomplete.",
+    connectionsTitle: "Connected accounts",
+    connected: "Connected",
+    notConnected: "Not connected",
+    connect: "Connect account",
+    disconnect: "Disconnect",
+    disconnectNotReady: "Disconnect will be enabled with the publishing layer",
+    connectionConsent:
+      "You will sign in on official LinkedIn. We never request your password or publish without explicit approval.",
     tasks: "Team tasks",
     chat: "Chat",
     placeholder: "Ask for any marketing task...",
@@ -123,18 +180,63 @@ export const dict = {
     thinking: "Thinking...",
     lang: "العربية",
     quick: [
-      { label: "Full strategy", prompt: "Build a complete marketing strategy: analysis, positioning, SMART goals, channels, and KPIs." },
-      { label: "Weekly plan", prompt: "Build a detailed weekly marketing plan with a day-by-day task schedule, channels, and owners." },
-      { label: "Monthly plan", prompt: "Build a monthly marketing plan with goals, initiatives, budget split, and KPIs." },
-      { label: "Yearly plan", prompt: "Build a yearly marketing plan split by quarter with seasons, major campaigns, and budget allocation." },
-      { label: "Execution plan", prompt: "Build an operational execution plan: tasks, owners, timeline, resources, and risks." },
-      { label: "Content plan", prompt: "Build a monthly content plan with a posting calendar per platform, content types, and best posting times." },
-      { label: "Marketing copy", prompt: "Write ready-to-publish marketing copy: posts, ads, and landing page text with headline variants." },
-      { label: "Video script", prompt: "Write a full marketing video script with scenes, dialogue, audio, and on-screen text." },
-      { label: "Message & values", prompt: "Define the brand message, vision, values, tone of voice, and unique value proposition." },
-      { label: "Marketing calendar", prompt: "Build a detailed marketing calendar for the period with key dates and campaigns." },
-      { label: "Budget split", prompt: "Allocate the budget across channels and campaigns with expected results and KPIs." },
-      { label: "Competitor analysis", prompt: "Analyze likely competitors in the target market and identify differentiation opportunities." },
+      {
+        label: "Full strategy",
+        prompt:
+          "Build a complete marketing strategy: analysis, positioning, SMART goals, channels, and KPIs.",
+      },
+      {
+        label: "Weekly plan",
+        prompt:
+          "Build a detailed weekly marketing plan with a day-by-day task schedule, channels, and owners.",
+      },
+      {
+        label: "Monthly plan",
+        prompt: "Build a monthly marketing plan with goals, initiatives, budget split, and KPIs.",
+      },
+      {
+        label: "Yearly plan",
+        prompt:
+          "Build a yearly marketing plan split by quarter with seasons, major campaigns, and budget allocation.",
+      },
+      {
+        label: "Execution plan",
+        prompt:
+          "Build an operational execution plan: tasks, owners, timeline, resources, and risks.",
+      },
+      {
+        label: "Content plan",
+        prompt:
+          "Build a monthly content plan with a posting calendar per platform, content types, and best posting times.",
+      },
+      {
+        label: "Marketing copy",
+        prompt:
+          "Write ready-to-publish marketing copy: posts, ads, and landing page text with headline variants.",
+      },
+      {
+        label: "Video script",
+        prompt:
+          "Write a full marketing video script with scenes, dialogue, audio, and on-screen text.",
+      },
+      {
+        label: "Message & values",
+        prompt:
+          "Define the brand message, vision, values, tone of voice, and unique value proposition.",
+      },
+      {
+        label: "Marketing calendar",
+        prompt: "Build a detailed marketing calendar for the period with key dates and campaigns.",
+      },
+      {
+        label: "Budget split",
+        prompt: "Allocate the budget across channels and campaigns with expected results and KPIs.",
+      },
+      {
+        label: "Competitor analysis",
+        prompt:
+          "Analyze likely competitors in the target market and identify differentiation opportunities.",
+      },
     ],
   },
 } as const;

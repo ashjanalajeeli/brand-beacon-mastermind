@@ -143,6 +143,69 @@ export type Database = {
         };
         Relationships: [];
       };
+      oauth_states: {
+        Row: {
+          created_at: string;
+          expires_at: string;
+          platform: string;
+          state: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          expires_at: string;
+          platform: string;
+          state: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          expires_at?: string;
+          platform?: string;
+          state?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      social_connections: {
+        Row: {
+          access_token: string;
+          account_id: string;
+          account_name: string;
+          created_at: string;
+          expires_at: string | null;
+          id: string;
+          platform: string;
+          refresh_token: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          access_token: string;
+          account_id: string;
+          account_name?: string;
+          created_at?: string;
+          expires_at?: string | null;
+          id?: string;
+          platform: string;
+          refresh_token?: string | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          access_token?: string;
+          account_id?: string;
+          account_name?: string;
+          created_at?: string;
+          expires_at?: string | null;
+          id?: string;
+          platform?: string;
+          refresh_token?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           created_at: string;
