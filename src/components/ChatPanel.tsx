@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
+import { useServerFn } from "@tanstack/react-start";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { toast } from "sonner";
 import { RotateCcw } from "lucide-react";
@@ -19,7 +20,7 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import type { Dict, Lang } from "@/lib/i18n";
-import type { BriefInput } from "@/lib/marketing.functions";
+import { savePreparedContent, type BriefInput } from "@/lib/marketing.functions";
 import logo from "@/assets/logo.png";
 import { PlanApproval } from "@/components/PlanApproval";
 
@@ -37,6 +38,8 @@ export function ChatPanel({ t, lang, brief, initialMessages, onPersist, onClear 
   briefRef.current = brief;
   const langRef = useRef(lang);
   langRef.current = lang;
+  const pendingPreparationRef = useRef<{ planId: string; platforms: string[] } | null>(null);
+  const savePrepared = useServerFn(savePreparedContent);
 
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -54,7 +57,21 @@ export function ChatPanel({ t, lang, brief, initialMessages, onPersist, onClear 
       },
       body: () => ({ brief: briefRef.current, language: langRef.current }),
     }),
-    onFinish: ({ message }) => onPersist("assistant", message),
+    onFinish: ({ message }) => {
+      onPersist("assistant", message);
+      const pending = pendingPreparationRef.current;
+      const content = message.parts
+        .filter((part) => part.type === "text")
+        .map((part) => part.text)
+        .join("\n")
+        .trim();
+      if (pending && content) {
+        pendingPreparationRef.current = null;
+        void savePrepared({
+          data: { plan_id: pending.planId, platforms: pending.platforms, content },
+        }).catch((error) => toast.error(error instanceof Error ? error.message : "Error"));
+      }
+    },
     onError: (error) => toast.error(error.message || "Error"),
   });
 
@@ -123,9 +140,24 @@ export function ChatPanel({ t, lang, brief, initialMessages, onPersist, onClear 
                     <MessageResponse key={i}>{part.text}</MessageResponse>
                   ) : null,
                 )}
-                {message.role === "assistant" && !isLoading && message.parts.some((part) => part.type === "text" && part.text.trim()) && (
-                  <PlanApproval key={message.id} t={t} lang={lang} brief={brief} content={message.parts.filter((part) => part.type === "text").map((part) => part.text).join("\n")} onPrepare={send} />
-                )}
+                {message.role === "assistant" &&
+                  !isLoading &&
+                  message.parts.some((part) => part.type === "text" && part.text.trim()) && (
+                    <PlanApproval
+                      key={message.id}
+                      t={t}
+                      lang={lang}
+                      brief={brief}
+                      content={message.parts
+                        .filter((part) => part.type === "text")
+                        .map((part) => part.text)
+                        .join("\n")}
+                      onPrepare={(prompt, planId) => {
+                        pendingPreparationRef.current = { planId, platforms: brief.platforms };
+                        send(prompt);
+                      }}
+                    />
+                  )}
               </MessageContent>
             </Message>
           ))}

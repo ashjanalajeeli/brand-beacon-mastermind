@@ -3,16 +3,18 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { approvalSchema, marketingSettingsSchema } from "@/lib/marketing-settings";
 
-const BriefSchema = z.object({
-  project_name: z.string().max(200).default(""),
-  idea: z.string().max(4000).default(""),
-  audience: z.string().max(2000).default(""),
-  duration: z.string().max(200).default(""),
-  budget: z.string().max(200).default(""),
-  country: z.string().max(200).default(""),
-  language: z.string().max(5).default("ar"),
-  notes: z.string().max(4000).default(""),
-}).merge(marketingSettingsSchema);
+const BriefSchema = z
+  .object({
+    project_name: z.string().max(200).default(""),
+    idea: z.string().max(4000).default(""),
+    audience: z.string().max(2000).default(""),
+    duration: z.string().max(200).default(""),
+    budget: z.string().max(200).default(""),
+    country: z.string().max(200).default(""),
+    language: z.string().max(5).default("ar"),
+    notes: z.string().max(4000).default(""),
+  })
+  .merge(marketingSettingsSchema);
 
 export type BriefInput = z.infer<typeof BriefSchema>;
 
@@ -81,12 +83,42 @@ export const approvePlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => approvalSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const { data: plan, error } = await context.supabase.from("execution_plans").insert({
-      user_id: context.userId,
-      content: data.content,
-      platforms: data.platforms,
-      paid_ads: data.paid_ads,
-    }).select("id").single();
+    const { data: plan, error } = await context.supabase
+      .from("execution_plans")
+      .insert({
+        user_id: context.userId,
+        content: data.content,
+        platforms: data.platforms,
+        paid_ads: data.paid_ads,
+      })
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
     return { id: plan.id };
+  });
+
+export const savePreparedContent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        plan_id: z.string().uuid(),
+        content: z.string().trim().min(1).max(100000),
+        platforms: z.array(z.string()).min(1).max(6),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: prepared, error } = await context.supabase
+      .from("prepared_content")
+      .insert({
+        user_id: context.userId,
+        plan_id: data.plan_id,
+        content: data.content,
+        platforms: data.platforms,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { id: prepared.id };
   });
