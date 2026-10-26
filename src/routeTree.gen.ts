@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiConnectLinkedinCallbackRouteImport } from './routes/api/connect/linkedin/callback'
+import { Route as ApiConnectMetaCallbackRouteImport } from './routes/api/connect/meta/callback'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -35,18 +36,25 @@ const ApiConnectLinkedinCallbackRoute =
     path: '/api/connect/linkedin/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiConnectMetaCallbackRoute = ApiConnectMetaCallbackRouteImport.update({
+  id: '/api/connect/meta/callback',
+  path: '/api/connect/meta/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/api/chat': typeof ApiChatRoute
   '/api/connect/linkedin/callback': typeof ApiConnectLinkedinCallbackRoute
+  '/api/connect/meta/callback': typeof ApiConnectMetaCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/api/chat': typeof ApiChatRoute
   '/api/connect/linkedin/callback': typeof ApiConnectLinkedinCallbackRoute
+  '/api/connect/meta/callback': typeof ApiConnectMetaCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -54,14 +62,30 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/api/chat': typeof ApiChatRoute
   '/api/connect/linkedin/callback': typeof ApiConnectLinkedinCallbackRoute
+  '/api/connect/meta/callback': typeof ApiConnectMetaCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/api/chat' | '/api/connect/linkedin/callback'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/api/chat'
+    | '/api/connect/linkedin/callback'
+    | '/api/connect/meta/callback'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/api/chat' | '/api/connect/linkedin/callback'
+  to:
+    | '/'
+    | '/auth'
+    | '/api/chat'
+    | '/api/connect/linkedin/callback'
+    | '/api/connect/meta/callback'
   id:
-    '__root__' | '/' | '/auth' | '/api/chat' | '/api/connect/linkedin/callback'
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/api/chat'
+    | '/api/connect/linkedin/callback'
+    | '/api/connect/meta/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -69,6 +93,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiConnectLinkedinCallbackRoute: typeof ApiConnectLinkedinCallbackRoute
+  ApiConnectMetaCallbackRoute: typeof ApiConnectMetaCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -101,6 +126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiConnectLinkedinCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/connect/meta/callback': {
+      id: '/api/connect/meta/callback'
+      path: '/api/connect/meta/callback'
+      fullPath: '/api/connect/meta/callback'
+      preLoaderRoute: typeof ApiConnectMetaCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -109,6 +141,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ApiChatRoute: ApiChatRoute,
   ApiConnectLinkedinCallbackRoute: ApiConnectLinkedinCallbackRoute,
+  ApiConnectMetaCallbackRoute: ApiConnectMetaCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

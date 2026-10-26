@@ -4,7 +4,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const socialPlatformSchema = z.literal("linkedin");
+const socialPlatformSchema = z.enum(["linkedin", "meta"]);
 const tokenKeyEnv = "SOCIAL_TOKEN_ENCRYPTION_KEY";
 
 function encryptionKey() {
@@ -47,12 +47,23 @@ export const startSocialConnection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: unknown) => z.object({ platform: socialPlatformSchema }).parse(input))
   .handler(async ({ data, context }) => {
-    const clientId = process.env.LINKEDIN_CLIENT_ID;
-    if (!clientId) throw new Error("LinkedIn OAuth is not configured: missing LINKEDIN_CLIENT_ID");
+    const clientId =
+      data.platform === "linkedin" ? process.env.LINKEDIN_CLIENT_ID : process.env.META_APP_ID;
+    if (!clientId) {
+      throw new Error(
+        data.platform === "linkedin"
+          ? "LinkedIn OAuth is not configured: missing LINKEDIN_CLIENT_ID"
+          : "Meta OAuth is not configured: missing META_APP_ID",
+      );
+    }
     const request = getRequest();
     if (!request) throw new Error("Unable to determine the application URL");
     const state = randomBytes(32).toString("hex");
-    const redirectUri = new URL("/api/connect/linkedin/callback", request.url).toString();
+    const callbackPath =
+      data.platform === "linkedin"
+        ? "/api/connect/linkedin/callback"
+        : "/api/connect/meta/callback";
+    const redirectUri = new URL(callbackPath, request.url).toString();
     const { error } = await context.supabase.from("oauth_states").insert({
       state,
       user_id: context.userId,
@@ -60,11 +71,21 @@ export const startSocialConnection = createServerFn({ method: "POST" })
       expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
     });
     if (error) throw new Error(error.message);
-    const authUrl = new URL("https://www.linkedin.com/oauth/v2/authorization");
+    const authUrl =
+      data.platform === "linkedin"
+        ? new URL("https://www.linkedin.com/oauth/v2/authorization")
+        : new URL(
+            `https://www.facebook.com/${process.env.META_GRAPH_VERSION ?? "v26.0"}/dialog/oauth`,
+          );
     authUrl.searchParams.set("response_type", "code");
     authUrl.searchParams.set("client_id", clientId);
     authUrl.searchParams.set("redirect_uri", redirectUri);
     authUrl.searchParams.set("state", state);
-    authUrl.searchParams.set("scope", "openid profile email w_member_social");
+    authUrl.searchParams.set(
+      "scope",
+      data.platform === "linkedin"
+        ? "openid profile email w_member_social"
+        : "pages_show_list,pages_read_engagement,instagram_basic,instagram_content_publish",
+    );
     return { url: authUrl.toString() };
   });
