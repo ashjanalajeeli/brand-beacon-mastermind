@@ -28,8 +28,8 @@ export const Route = createFileRoute("/api/connect/linkedin/callback")({
         }
         await supabaseAdmin.from("oauth_states").delete().eq("state", state);
 
-        const clientId = process.env.LINKEDIN_CLIENT_ID;
-        const clientSecret = process.env.LINKEDIN_CLIENT_SECRET;
+        const clientId = process.env['LINKEDIN_CLIENT_ID'];
+        const clientSecret = process.env['LINKEDIN_CLIENT_SECRET'];
         if (!clientId || !clientSecret)
           return new Response("LinkedIn OAuth is not configured", { status: 500 });
         const redirectUri = new URL("/api/connect/linkedin/callback", request.url).toString();

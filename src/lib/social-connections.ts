@@ -48,7 +48,7 @@ export const startSocialConnection = createServerFn({ method: "POST" })
   .validator((input: unknown) => z.object({ platform: socialPlatformSchema }).parse(input))
   .handler(async ({ data, context }) => {
     const clientId =
-      data.platform === "linkedin" ? process.env.LINKEDIN_CLIENT_ID : process.env.META_APP_ID;
+      data.platform === "linkedin" ? process.env['LINKEDIN_CLIENT_ID'] : process.env['META_APP_ID'];
     if (!clientId) {
       throw new Error(
         data.platform === "linkedin"
@@ -75,7 +75,7 @@ export const startSocialConnection = createServerFn({ method: "POST" })
       data.platform === "linkedin"
         ? new URL("https://www.linkedin.com/oauth/v2/authorization")
         : new URL(
-            `https://www.facebook.com/${process.env.META_GRAPH_VERSION ?? "v26.0"}/dialog/oauth`,
+            `https://www.facebook.com/${process.env['META_GRAPH_VERSION'] ?? "v26.0"}/dialog/oauth`,
           );
     authUrl.searchParams.set("response_type", "code");
     authUrl.searchParams.set("client_id", clientId);

@@ -10,7 +10,7 @@ type MetaPage = {
   instagram_business_account?: { id: string };
 };
 
-const graphVersion = () => process.env.META_GRAPH_VERSION ?? "v26.0";
+const graphVersion = () => process.env['META_GRAPH_VERSION'] ?? "v26.0";
 const graphUrl = (path: string) => `https://graph.facebook.com/${graphVersion()}${path}`;
 
 async function graphGet<T>(path: string, accessToken: string): Promise<T> {
@@ -49,8 +49,8 @@ export const Route = createFileRoute("/api/connect/meta/callback")({
         }
         await supabaseAdmin.from("oauth_states").delete().eq("state", state);
 
-        const appId = process.env.META_APP_ID;
-        const appSecret = process.env.META_APP_SECRET;
+        const appId = process.env['META_APP_ID'];
+        const appSecret = process.env['META_APP_SECRET'];
         if (!appId || !appSecret)
           return new Response("Meta OAuth is not configured", { status: 500 });
         const redirectUri = new URL("/api/connect/meta/callback", request.url).toString();
