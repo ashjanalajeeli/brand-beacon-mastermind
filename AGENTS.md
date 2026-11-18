@@ -11,3 +11,5 @@
 
 - Keep marketing preferences and approval validation in the shared marketing-settings module so form, server and agent use identical rules.
 - Persist approved plan snapshots per authenticated user; content preparation is separate from publication and paid-ad spending, which require verified platform connections and explicit authorization.
+
+- Keep `.env` committed (it holds only public Cloud URL/publishable key); the hosted build reads VITE_* values from it, and ignoring it ships a bundle missing SUPABASE_URL.
