@@ -3,7 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { approvalSchema, marketingSettingsSchema } from "@/lib/marketing-settings";
 
-const BriefSchema = z
+export const BriefSchema = z
   .object({
     project_name: z.string().max(200).default(""),
     idea: z.string().max(4000).default(""),
@@ -56,7 +56,12 @@ export const getMessages = createServerFn({ method: "GET" })
 export const saveMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z.object({ role: z.enum(["user", "assistant"]), content: z.unknown() }).parse(input),
+    z
+      .object({ role: z.enum(["user", "assistant"]), content: z.unknown() })
+      .refine((value) => (JSON.stringify(value.content) ?? "").length <= 200_000, {
+        message: "Message is too large",
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("chat_messages").insert({

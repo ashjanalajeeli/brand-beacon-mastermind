@@ -2,6 +2,11 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { marketingSettingsSchema, settingsInstructions } from "@/lib/marketing-settings";
+import { BriefSchema } from "@/lib/marketing.functions";
+
+const MAX_BODY_BYTES = 512_000;
+const MAX_MESSAGES = 60;
+const rateLimitPerHour = () => Number(process.env["CHAT_RATE_LIMIT_PER_HOUR"] ?? 40);
 
 type Brief = {
   project_name?: string | null;
@@ -60,13 +65,51 @@ export const Route = createFileRoute("/api/chat")({
         const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
         if (userError || !userData?.user) return new Response("Unauthorized", { status: 401 });
 
-        const body = (await request.json()) as ChatRequestBody;
-        if (!Array.isArray(body.messages)) {
+        const declaredLength = Number(request.headers.get("content-length") ?? 0);
+        if (declaredLength > MAX_BODY_BYTES)
+          return new Response("Request is too large", { status: 413 });
+        const raw = await request.text();
+        if (raw.length > MAX_BODY_BYTES)
+          return new Response("Request is too large", { status: 413 });
+
+        let body: ChatRequestBody;
+        try {
+          body = JSON.parse(raw) as ChatRequestBody;
+        } catch {
+          return new Response("Invalid JSON", { status: 400 });
+        }
+        if (!Array.isArray(body.messages) || body.messages.length === 0) {
           return new Response("Messages are required", { status: 400 });
         }
+        // Keep only the most recent turns so one request cannot carry a huge history.
+        const messages = body.messages.slice(-MAX_MESSAGES) as UIMessage[];
+        const brief = BriefSchema.safeParse(body.brief ?? {});
+        if (!brief.success) return new Response("Invalid brief", { status: 400 });
+        const language = body.language === "en" ? "en" : "ar";
+
+        const userId = userData.user.id;
+        const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+        const { count, error: countError } = await supabaseAdmin
+          .from("chat_rate_events")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .gte("created_at", since);
+        if (countError) return new Response("Rate limit check failed", { status: 503 });
+        if ((count ?? 0) >= rateLimitPerHour()) {
+          return new Response("Too many requests, please try again later", {
+            status: 429,
+            headers: { "Retry-After": "600" },
+          });
+        }
+        await supabaseAdmin.from("chat_rate_events").insert({ user_id: userId });
+        await supabaseAdmin
+          .from("chat_rate_events")
+          .delete()
+          .eq("user_id", userId)
+          .lt("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
         const key = process.env["LOVABLE_API_KEY"];
-        if (!key) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
+        if (!key) return new Response("AI service is not configured", { status: 500 });
 
         const lovable = createOpenAI({
           baseURL: "https://ai.gateway.lovable.dev/v1",
@@ -76,8 +119,8 @@ export const Route = createFileRoute("/api/chat")({
 
         const result = streamText({
           model: lovable.responses("openai/gpt-6-astra"),
-          instructions: systemPrompt(body.brief, body.language ?? "ar"),
-          messages: await convertToModelMessages(body.messages as UIMessage[]),
+          instructions: systemPrompt(brief.data, language),
+          messages: await convertToModelMessages(messages),
           tools: { web_search: lovable.tools.webSearch({}) },
           providerOptions: {
             openai: {
@@ -91,7 +134,7 @@ export const Route = createFileRoute("/api/chat")({
         });
 
         return result.toUIMessageStreamResponse({
-          originalMessages: body.messages as UIMessage[],
+          originalMessages: messages,
         });
       },
     },

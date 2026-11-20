@@ -83,6 +83,24 @@ export type Database = {
         };
         Relationships: [];
       };
+      chat_rate_events: {
+        Row: {
+          created_at: string;
+          id: number;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: never;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: never;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       execution_plans: {
         Row: {
           approved_at: string;
