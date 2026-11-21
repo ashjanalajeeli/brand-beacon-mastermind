@@ -94,19 +94,30 @@ export const Route = createFileRoute("/api/chat")({
           .select("id", { count: "exact", head: true })
           .eq("user_id", userId)
           .gte("created_at", since);
-        if (countError) return new Response("Rate limit check failed", { status: 503 });
-        if ((count ?? 0) >= rateLimitPerHour()) {
-          return new Response("Too many requests, please try again later", {
-            status: 429,
-            headers: { "Retry-After": "600" },
-          });
+        // PGRST205 / 42P01: the rate-limit table does not exist because
+        // migration 0004 has not been applied yet. Keep chat working, but log
+        // loudly so the missing migration is noticed.
+        const rateTableMissing = countError?.code === "PGRST205" || countError?.code === "42P01";
+        if (countError && !rateTableMissing)
+          return new Response("Rate limit check failed", { status: 503 });
+        if (rateTableMissing) {
+          console.error(
+            "[chat] chat_rate_events table is missing: apply drizzle/migrations/0004_chat_rate_limit.sql. Chat is NOT rate limited.",
+          );
+        } else {
+          if ((count ?? 0) >= rateLimitPerHour()) {
+            return new Response("Too many requests, please try again later", {
+              status: 429,
+              headers: { "Retry-After": "600" },
+            });
+          }
+          await supabaseAdmin.from("chat_rate_events").insert({ user_id: userId });
+          await supabaseAdmin
+            .from("chat_rate_events")
+            .delete()
+            .eq("user_id", userId)
+            .lt("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
         }
-        await supabaseAdmin.from("chat_rate_events").insert({ user_id: userId });
-        await supabaseAdmin
-          .from("chat_rate_events")
-          .delete()
-          .eq("user_id", userId)
-          .lt("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
         const key = process.env["LOVABLE_API_KEY"];
         if (!key) return new Response("AI service is not configured", { status: 500 });
