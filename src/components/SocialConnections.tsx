@@ -3,7 +3,11 @@ import { Link2, Loader2, Unlink } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
-import { getSocialConnections, startSocialConnection } from "@/lib/social-connections";
+import {
+  disconnectSocialConnection,
+  getSocialConnections,
+  startSocialConnection,
+} from "@/lib/social-connections";
 import type { Dict } from "@/lib/i18n";
 
 type Connection = { id: string; platform: string; account_name: string };
@@ -14,6 +18,7 @@ export function SocialConnections({ t }: { t: Dict }) {
   const [busy, setBusy] = useState(false);
   const getConnections = useServerFn(getSocialConnections);
   const startConnection = useServerFn(startSocialConnection);
+  const disconnectConnection = useServerFn(disconnectSocialConnection);
 
   const refresh = async () => {
     try {
@@ -39,6 +44,18 @@ export function SocialConnections({ t }: { t: Dict }) {
     }
   };
 
+  const disconnect = async (id: string) => {
+    setBusy(true);
+    try {
+      await disconnectConnection({ data: { id } });
+      await refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Error");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const accountRow = (name: string, account: Connection | undefined, onConnect: () => void) => (
     <div className="flex items-center justify-between gap-3 rounded-lg border bg-surface/40 p-3">
       <div className="min-w-0">
@@ -48,7 +65,12 @@ export function SocialConnections({ t }: { t: Dict }) {
         </p>
       </div>
       {account ? (
-        <Button variant="ghost" size="sm" disabled title={t.disconnectNotReady}>
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={busy}
+          onClick={() => void disconnect(account.id)}
+        >
           <Unlink className="size-4" />
           {t.disconnect}
         </Button>

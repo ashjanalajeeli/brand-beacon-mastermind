@@ -1,6 +1,6 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
+import { getRequest, setCookie } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
@@ -48,7 +48,7 @@ export const startSocialConnection = createServerFn({ method: "POST" })
   .validator((input: unknown) => z.object({ platform: socialPlatformSchema }).parse(input))
   .handler(async ({ data, context }) => {
     const clientId =
-      data.platform === "linkedin" ? process.env['LINKEDIN_CLIENT_ID'] : process.env['META_APP_ID'];
+      data.platform === "linkedin" ? process.env["LINKEDIN_CLIENT_ID"] : process.env["META_APP_ID"];
     if (!clientId) {
       throw new Error(
         data.platform === "linkedin"
@@ -58,28 +58,39 @@ export const startSocialConnection = createServerFn({ method: "POST" })
     }
     const request = getRequest();
     if (!request) throw new Error("Unable to determine the application URL");
+    const { oauthStateCookie, redirectUri } = await import("@/lib/oauth.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     const state = randomBytes(32).toString("hex");
-    const callbackPath =
-      data.platform === "linkedin"
-        ? "/api/connect/linkedin/callback"
-        : "/api/connect/meta/callback";
-    const redirectUri = new URL(callbackPath, request.url).toString();
-    const { error } = await context.supabase.from("oauth_states").insert({
+    // oauth_states is closed to browser clients; write it with the service role
+    // after the middleware has verified the caller's identity.
+    await supabaseAdmin.from("oauth_states").delete().lt("expires_at", new Date().toISOString());
+    const { error } = await supabaseAdmin.from("oauth_states").insert({
       state,
       user_id: context.userId,
       platform: data.platform,
       expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
     });
-    if (error) throw new Error(error.message);
+    if (error) throw new Error("Could not start the connection, please try again");
+    // Bind the state to this browser so the callback cannot be completed from
+    // a link someone else started.
+    setCookie(oauthStateCookie(data.platform), state, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/api/connect",
+      maxAge: 10 * 60,
+    });
+
     const authUrl =
       data.platform === "linkedin"
         ? new URL("https://www.linkedin.com/oauth/v2/authorization")
         : new URL(
-            `https://www.facebook.com/${process.env['META_GRAPH_VERSION'] ?? "v26.0"}/dialog/oauth`,
+            `https://www.facebook.com/${process.env["META_GRAPH_VERSION"] ?? "v26.0"}/dialog/oauth`,
           );
     authUrl.searchParams.set("response_type", "code");
     authUrl.searchParams.set("client_id", clientId);
-    authUrl.searchParams.set("redirect_uri", redirectUri);
+    authUrl.searchParams.set("redirect_uri", redirectUri(request, data.platform));
     authUrl.searchParams.set("state", state);
     authUrl.searchParams.set(
       "scope",
@@ -88,4 +99,18 @@ export const startSocialConnection = createServerFn({ method: "POST" })
         : "pages_show_list,pages_read_engagement,instagram_basic,instagram_content_publish",
     );
     return { url: authUrl.toString() };
+  });
+
+export const disconnectSocialConnection = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    // RLS limits the delete to the caller's own rows.
+    const { error } = await context.supabase
+      .from("social_connections")
+      .delete()
+      .eq("id", data.id)
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
